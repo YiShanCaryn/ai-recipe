@@ -1,21 +1,21 @@
 import React from "react"
 import IngredientList from "./components/IngredientsList"
+import RecipeDisplay from "./components/RecipeDisplay"
+import { getRecipeFromAi } from "./ai"
 
 export default function Main() {
 
-  const [ingredients, setIngredients] = React.useState([])
-  const [recipeShown, setRecipeShown] = React.useState(false)
-  const [error, setError] = React.useState(null)
+  const [ingredients, setIngredients] = React.useState(["all the main spices", "pasta", "ground beef", "tomato paste"])
+  const [recipe, setRecipe] = React.useState(false)
   
   function addIngredient(data) {
       const newIngredient = data.get("ingredient")
       setIngredients (prev => [...prev, newIngredient])
     }
 
-  function renderRecipeShown() {
-    setRecipeShown (prev => !prev)
-    if (!recipeShown)
-      setError(null) 
+  async function getRecipe() {
+    const recipeMarkdown = await getRecipeFromAi(ingredients)
+    setRecipe(recipeMarkdown)
   }
   
   
@@ -27,7 +27,11 @@ export default function Main() {
         <button>Add ingredient</button>
       </form>
 
-      <IngredientList ingredients={ingredients} recipeShown={renderRecipeShown} />
+      { ingredients.length > 0 && 
+        <IngredientList ingredients={ingredients} getRecipe={getRecipe} />}
+
+      { recipe && 
+        <RecipeDisplay recipe={recipe} />}
 
     </main>
   )
