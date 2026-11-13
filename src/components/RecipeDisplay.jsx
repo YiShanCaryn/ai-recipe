@@ -1,8 +1,12 @@
+import ReactMarkdown from 'react-markdown'
+
 export default function RecipeDisplay(props) {
     return (
-        <section>
+        <section className='suggested-recipe-container'>
             <h2>Chef AI Recommends:</h2>
-            {props.recipe}
+            <ReactMarkdown>
+                {props.recipe}
+            </ReactMarkdown>
         </section>
     )
 }

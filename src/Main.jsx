@@ -5,8 +5,10 @@ import { getRecipeFromAi } from "./ai"
 
 export default function Main() {
 
-  const [ingredients, setIngredients] = React.useState(["all the main spices", "pasta", "ground beef", "tomato paste"])
+  const [ingredients, setIngredients] = React.useState([])
   const [recipe, setRecipe] = React.useState(false)
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState(null)
   
   function addIngredient(data) {
       const newIngredient = data.get("ingredient")
@@ -14,8 +16,22 @@ export default function Main() {
     }
 
   async function getRecipe() {
-    const recipeMarkdown = await getRecipeFromAi(ingredients)
-    setRecipe(recipeMarkdown)
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const recipeJson = await getRecipeFromAi(ingredients)
+      
+      const cleanJson = recipeJson.replace(/^```(json)?\s*/, '').replace(/\s*```$/, '')
+      const recipe = JSON.parse(cleanJson)
+      const markdown = `# ${recipe.title}\n\n## Ingredients\n\n${recipe.ingredients.map(i => `- ${i}`).join('\n')}\n\n## Instructions\n\n${recipe.instructions.map((step, idx) => `${idx + 1}. ${step}`).join('\n')}`
+      setRecipe(markdown)
+    } catch (err) {
+      setError(err.message || 'Failed to load recipe')
+      console.error('Recipe error:', err)
+    } finally {
+      setLoading(false)
+    }
   }
   
   
@@ -30,8 +46,9 @@ export default function Main() {
       { ingredients.length > 0 && 
         <IngredientList ingredients={ingredients} getRecipe={getRecipe} />}
 
-      { recipe && 
-        <RecipeDisplay recipe={recipe} />}
+      {loading && <p className="loading-message">Loading recipe from AI...</p>}
+      {error && <div className="error-message"><p>{error}</p></div>}
+      {recipe && <RecipeDisplay recipe={recipe} />}
 
     </main>
   )
